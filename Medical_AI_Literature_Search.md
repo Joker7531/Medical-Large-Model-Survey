@@ -34,7 +34,7 @@
 | A | 2025 | Toward expert-level medical question answering with large language models | Nature Medicine | Med-PaLM 2 | https://doi.org/10.1038/s41591-024-03423-7 | OA | Med-PaLM 2，含 ensemble refinement、chain of retrieval、长答案临床评价。 |
 | B | 2024 | Capabilities of Gemini Models in Medicine | arXiv / Google | Med-Gemini | https://doi.org/10.48550/arXiv.2404.18416 | 预印本 | 多任务、多模态、长上下文医疗能力报告；影响大但写作需标注预印本。 |
 | A | 2026 | Holistic evaluation of large language models for medical tasks with MedHELM | Nature Medicine | MedHELM | https://doi.org/10.1038/s41591-025-04151-2 | 需机构/下载 | 医疗 LLM 综合评测框架，覆盖真实临床任务分类。 |
-| A | 2026 | A large language model for complex cardiology care | Nature Medicine | 心血管专科 LLM | https://doi.org/10.1038/s41591-025-04190-9 | OA | 专科医学 LLM 的高影响临床方向论文。 |
+| A | 2026 | a large language model for complex cardiology care | Nature Medicine | 心血管专科 LLM | https://doi.org/10.1038/s41591-025-04190-9 | OA | 专科医学 LLM 的高影响临床方向论文。 |
 
 ## 三、多模态医疗大模型、医学视觉语言模型与影像
 
