@@ -1,0 +1,48 @@
+\section{多模态医疗大模型}
+
+多模态医疗大模型的演进围绕“如何把视觉、生物信号、组学等模态稳健接入语言模型，并在下游任务上保持统一权重的可用性”展开。目前三条主流融合路线在 MultiMedBench 等综合基准上的性能差距已小于 5 个百分点，竞争焦点也随之转移至三类不对称，即模态可得性不对称、评估指标不对称与空间接地不对称。
+
+\subsection{架构路线一：联合融合}
+
+联合融合将视觉编码器输出的 token 与文本 token 直接拼接，再由单一解码器在交错序列上完成跨模态推理。Med-PaLM M 是这条路线在医疗领域最具代表性的落地[14]：其以 PaLM-E 为骨架，把 12B、84B、562B 三档参数规模分别在 MultiMedBench 的 14 个任务上做统一权重训练，覆盖 MedQA、MedMCQA、PubMedQA、MIMIC-III RRS、VQA-RAD、Slake-VQA、Path-VQA、MIMIC-CXR、PAD-UFES-20、VinDr-Mammo、CBIS-DDSM、PrecisionFDA V2 等基准。其 562B 版本在 14 个任务中全部达到或接近 SOTA，是当时通用医疗多模态模型的能力上限。Med-PaLM M 提供的超过 100 万样本的多模态医疗任务集合，也长期构成这一方向覆盖最广的统一评估基准。
+
+\subsection{架构路线二：门控交叉注意力}
+
+门控交叉注意力通过 Perceiver Resampler 把视觉特征压缩到固定槽位，再以门控交叉注意力将视觉信息注入 LLM 中间层，在引入视觉模态的同时尽量保留主干语言模型的原有能力。Med-Flamingo 将这一思路引入医学领域[12]，以 OpenFlamingo + LLaMA-7B 为骨架（共 8.3B 参数），从 4,721 本医学教科书抽取并构建出 MTB 数据集（80 万图、5.84 亿 tokens）用于继续训练。该模型首次在医学多模态领域验证了 \textbf{少样本上下文学习} 的可行性，使模型能够在 4--8 个标注样本的提示下完成 PathVQA、VQA-RAD 等任务的零样本到少样本推理。
+
+\subsection{架构路线三：离散 token 化与统一序列建模}
+
+离散 token 化将图像、文本、表格乃至空间位置统一映射为离散 token，再由 Transformer 在共享词表上完成序列建模，把跨模态统一性推进到更彻底的形式。BiomedGPT 是这一路线的轻量化代表[15]：其基于 OFA 框架，用 VQ-GAN 把图像离散为视觉 token，与文本 BPE token 共享一个 59,457 维统一词表；33M、93M、182M 三档参数规模在 25 项任务中有 16 项达到 SOTA。尤其值得强调的是，182M 参数版本相对 562B 的 Med-PaLM M 在参数规模上缩小超过 3,000 倍，却仍在多项放射、病理与皮肤镜任务上保持接近 SOTA 的性能，说明模型规模并非能力上限的唯一决定因素。
+
+MAIRA-2 把离散 token 化进一步扩展到 \textbf{空间坐标} 维度[24]。其以 100$\times$100 网格坐标 token 编码病灶空间定位，使模型能够生成带句级边界框的接地放射报告。MAIRA-2 由 Vicuna 与 Rad-DINO 组合构建（约 7B 参数），在 MIMIC-CXR 上取得 BLEU-4 23.1、RadGraph-F1 34.6 等 SOTA，专家评审显示 91\% 的句子可以被临床医生直接接受。
+
+\subsection{长上下文与模态扩展}
+
+除上述三条主流架构外，Med-Gemini 系列还以 \textbf{长上下文窗口} 为多模态扩展提供了另一条路径[7,16]。Med-Gemini-M 1.5 支持 1M+ token 上下文，这意味着模型可以将完整电子健康记录、长视频或多张影像直接纳入提示上下文，而不再依赖 RAG 切片。Med-Gemini-2D 把 X 光、皮肤镜、眼底等 2D 模态接入；Med-Gemini-3D 则把头颈 CT、肺部 CT 等三维体素数据通过切片采样接入并完成报告生成；Med-Gemini-Polygenic 进一步把基因组多基因风险评分以零样本方式纳入预测。需要指出的是，Med-Gemini-3D 在结构化报告生成任务上仍存在显著幻觉，而 CT-US1 等私有数据集的存在也使其结论的可复核性受限。
+
+\subsection{接地与可追溯：以 RadFact 为例}
+
+多模态医疗报告生成长期以 BLEU、ROUGE、CIDEr 等基于词汇重叠的指标作为评估标准，但这些指标对医学报告中的临床显著性错误并不敏感。MAIRA-2 配套提出的 RadFact[24] 是针对这一缺陷的系统响应。该框架利用 Llama-3-70B 对模型生成报告与参考报告做句级逻辑蕴含推断，并给出四维评估：逻辑精确率与召回率，以及空间精确率与召回率。在 MIMIC-CXR 上，MAIRA-2 的 RadFact 指标比 BLEU 等传统指标具有更强的区分度，并与放射科专家评分高度相关。这表明多模态医疗模型的评估正在从“词汇重叠”转向“临床接地与可验证性”。
+
+\subsection{章节小结}
+
+多模态医疗大模型的瓶颈已从“如何把视觉接入 LLM”转向“如何让有限的数据、评估与接地基础设施跟上模型能力”。具体而言，这一瓶颈在三个维度上呈现不对称：第一，CXR、皮肤镜、眼底等 2D 影像在公开数据中占主导，但病理、3D CT、心脏超声、内镜视频等模态仍处于长尾；第二，BLEU 与 ROUGE 仍是大多数论文的默认指标，而 RadFact 这类临床显著性加权评估只在少数体系中实现协议化；第三，句级边界框接地已在胸片报告中达到较高成熟度，但其他模态和任务中同等级别的接地能力仍属空白。
+
+\begin{table}[htbp]
+\centering
+\caption{代表性多模态医疗大模型横向对比}
+\label{tab:mm-compare}
+\scriptsize
+\begin{tabularx}{\textwidth}{L{2.1cm} L{2.8cm} L{1.4cm} L{2.2cm} Y Y}
+\toprule
+模型 & 模态覆盖 & 规模 & 架构路线 & 突出贡献 & 关键局限 \\
+\midrule
+LLaVA-Med[11] & 文本 + 影像（CXR / CT / MRI / 病理） & 7B / 13B & 联合融合（视觉投影） & GPT-4 自指令与两阶段课程；8$\times$A100 训练少于 15 小时 & 输入仅 224$\times$224，幻觉显著 \\
+Med-Flamingo[12] & 文本 + 影像 & 8.3B & 门控交叉注意力 & MTB 80 万图，验证少样本 ICL & PathVQA 较弱，仍属 PoC \\
+Med-PaLM M[14] & 文本 + CXR + 病理 + 皮肤 + 钼靶 + 基因组 & 12B / 84B / 562B & 联合融合（PaLM-E） & MultiMedBench 14 任务统一权重 & 未开源，缺前瞻验证 \\
+BiomedGPT[15] & 文本 + 2D 图像 + 表格 & 33M / 93M / 182M & 离散 token 化 & 全开源且轻量化，相对 562B 缩小 3,000 倍以上 & 零样本 VQA 低于 60\% \\
+Med-Gemini-2D/3D/Polygenic[16] & 2D 影像 + 3D CT + 基因组 & 未披露 & 长上下文 + 多模态 & 3D 报告生成与 PRS 零样本预测 & 3D 幻觉明显，CT-US1 私有 \\
+MAIRA-2[24] & CXR + 历史片 + 临床文本 & 约 7B & 离散 token（空间坐标） & 句级边界框接地与 RadFact 评估 & 仅覆盖 CXR，51\% 训练数据私有 \\
+\bottomrule
+\end{tabularx}
+\end{table}

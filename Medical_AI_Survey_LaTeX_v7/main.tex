@@ -1,0 +1,63 @@
+\documentclass[UTF8,a4paper,12pt]{ctexart}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{setspace}
+\usepackage{tabularx}
+\usepackage{enumitem}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue
+}
+
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0.4em}
+\setstretch{1.25}
+\renewcommand{\arraystretch}{1.15}
+\captionsetup{labelfont=normalfont,textfont=normalfont}
+\ctexset{
+  section = {format = \Large\normalfont\raggedright},
+  subsection = {format = \large\normalfont\raggedright}
+}
+\renewcommand{\textbf}[1]{#1}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\begin{document}
+
+\begin{center}
+{\Large 医疗人工智能的发展图景：\\从范式演进到大模型临床部署\par}
+\vspace{0.8em}
+匿名作者\par
+\vspace{0.4em}
+2026年5月
+\end{center}
+
+\vspace{1em}
+\begin{center}
+摘要
+\end{center}
+\noindent
+\input{sections/00-abstract}
+
+\noindent 关键词：医疗人工智能；医疗大语言模型；多模态医疗大模型；专科基础模型；临床部署；可信治理
+
+\input{sections/01-introduction}
+\input{sections/02-paradigm}
+\input{sections/03-llm}
+\input{sections/04-multimodal}
+\input{sections/05-specialist}
+\input{sections/06-discussion}
+\input{sections/07-conclusion}
+\input{sections/08-references}
+
+\end{document}

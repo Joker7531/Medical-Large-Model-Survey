@@ -1,0 +1,60 @@
+\section{医疗大语言模型的能力图景}
+
+医疗大语言模型在过去三年完成了一次关键过渡：从“通用底座加领域微调”的基础组合，演进为“通用底座、推理时计算与工具调用”三者的结合体。主流体系分化为指令微调与提示策略、不确定性引导与推理增强、自博弈与模拟学习三条相互渗透的路线。英文主导的体系（Med-PaLM 家族、Med-Gemini、AMIE）在 USMLE 风格的静态基准上已接近性能上限；中文主导的体系（HuatuoGPT、BianQue、PULSE、DISC-MedLLM）则把完成一次合规的多轮问诊作为产品形态，在主动追问、共情表达与本地诊疗指南覆盖上发展出不同于英文路线的方法学侧重。
+
+\subsection{路线一：指令微调与提示策略}
+
+这一路线的核心理念是通过医学领域对齐，最大化通用基础模型已有语言能力的收益。其代表性序列由 Med-PaLM[8] 与 Med-PaLM 2[13] 构成。Singhal 等在 540B Flan-PaLM 之上仅通过指令提示微调，更新约 65 个软提示参数，就把模型在 MedQA（USMLE）上的准确率由 50.3\% 提升到 67.6\%，并把科学共识一致率由 61.9\% 推高到 92.6\%，接近临床医生的 92.9\%[8]。同期由 Med-PaLM 团队构建的 \textbf{MultiMedQA} 评估集整合 MedQA、MedMCQA、PubMedQA、MMLU 临床子集、LiveQA、MedicationQA 与 HealthSearchQA 共计 3,173 题，成为这一阶段事实上的标准基准；同时引入科学共识一致性、不当内容、遗漏、危害程度与偏见五个维度的临床医生人工评估框架。
+
+Med-PaLM 2 在 PaLM 2 基础上叠加两项关键推理增强。\textbf{集成精炼} 通过多路并行推理后综合输出，降低单一采样的偶然性；\textbf{检索链} 则把初始答案拆分为若干可验证子声明，逐项调用搜索完成事实接地。这两项机制使其在 MedQA 上达到 86.5\% 的准确率，并在 9 个临床轴中的 8 个上获得医生评审者偏好[13]。
+
+\subsection{路线二：不确定性引导与推理增强}
+
+当指令微调把静态准确率推近基准上限后，模型的剩余错误主要表现为 \textbf{过度自信的事实捏造}。Med-Gemini 系列以此为切入点，将训练目标从单纯提升正确率转向“在不确定时主动检索”[7]。其核心机制是基于输出 token 的 Shannon 熵触发外部搜索：当模型对下一 token 的预测分布过于平坦时，自动调用网络检索，把外部知识接地纳入推理回路。Med-Gemini 在 MedQA（USMLE）上取得 91.1\% 的准确率；在团队对评测题重新标注、修复错答与歧义后，SOTA 准确率上移至 91.8--92.9\%，这表明 \textbf{评测瓶颈已在一定程度上由模型能力转向标注质量}，是阶段三评估范式转向的早期信号。
+
+Med-Gemini 的另一项关键设计是利用 Gemini 1.5 的 1M+ token 上下文窗口直接解析完整电子病历或手术视频，将检索增强生成中的切片、召回与拼接步骤大幅简化为长上下文输入[7]。这一设计在概念上把“模型加 RAG”的两段式架构压缩为“模型、上下文与工具调用”的三层架构，是从语言驱动过渡到工具与反馈驱动的具体落地范例。其 2D / 3D / Polygenic 扩展[16] 则展示了这一架构在多模态长尾任务上的延展能力。
+
+\subsection{路线三：自博弈与模拟学习}
+
+第三条路线以 AMIE 为代表[17]。其方法学创新在于用自博弈绕开真实医患对话数据在隐私与规模上的约束：在 PaLM 2 基础上，模型同时扮演医生与模拟患者两个角色，内循环通过 in-context 批评机制对每一轮对话即时反馈，外循环则把累积的高质量对话作为新的微调数据迭代更新权重，模拟覆盖 5,230 种疾病的多轮问诊场景。在 159 例 OSCE 风格双盲交叉研究中，AMIE 在 30/32 个专家维度与 25/26 个患者维度上显著优于 20 名全科医生；在鉴别诊断推理和管理建议合理性两个维度上，其优势超过 0.5 个李克特量级。
+
+AMIE 将 \textbf{模拟学习的合规边界} 纳入主流方法学讨论。与依赖真实医患对话训练的中文路线相比，自博弈能在不接触患者隐私的前提下生成功能近似的训练信号；但其代价是模拟分布与真实分布之间潜在的偏差。
+
+\subsection{中文医疗大语言模型：另一种问题设定}
+
+英文体系通常将“通过 USMLE”或“增益医生工作流”作为里程碑，因此更强调应答能力；中文体系则将“完成一次合规的多轮问诊”作为产品形态，因此更强调主动追问能力。这一差异催生了方法学层面的独立创新。
+
+HuatuoGPT 是该路线的代表性早期工作[33]。Zhang 等观察到，当时医疗 LLM 只有“纯粹蒸馏自 ChatGPT”与“只在真实医患对话上训练”两种路径，前者缺乏专业诊断能力，后者则回复简短、不够友好。他们提出混合数据 SFT 加混合反馈强化学习（RLMF）的双重融合架构：前者同时利用 ChatGPT 蒸馏数据与真实医患对话数据，后者由 ChatGPT 与人类医生联合提供奖励信号。HuatuoGPT 基于 LLaMA-13B（Ziya-LLaMA 初始化）训练，在多轮对话评估中相对 DoctorGLM 胜率为 97\%，相对 ChatGPT 胜率为 62\%，并在 cMedQA2、webMedQA、Huatuo-26M 等中文医疗 QA 基准上取得领先表现。
+
+BianQue 进一步强调模型主动追问的能力，提出 \textbf{Chain of Questioning（CoQ）} 概念[34]。Chen 等指出，真实临床场景中医生需通过多轮问诊逐步了解患者状况，才能给出个性化建议；而当时的中文医疗 LLM 因训练数据缺乏多轮追问样本而“只会建议、不会提问”。BianQue 团队构建了 243 万条多轮健康对话数据集 BianQueCorpus，通过 ChatGPT 对真实医患对话中医生的建议进行润色，保持问题与建议的比例约为 46.2\% 对 53.8\%。以 ChatGLM-6B 为底座做全参数微调后，BianQue 在 MedDG 数据集上 BLEU-1 达到 14.86、ROUGE-L 达到 19.56，自定义的 PQA 指标达到 0.81，均显著高于 ChatGPT 基线。
+
+PULSE 与 DISC-MedLLM 进一步扩展了中文医疗人工智能的规模。PULSE 由上海人工智能实验室 OpenMEDLab 团队发布，以 BLOOMZ-7B 与自研中文基座扩展版本为底座，在约 400 万条中文医学指令数据上做监督微调，在 MedQA-MCMLE 与 CMB 上压制同期开源中文通用 LLM[43]。DISC-MedLLM 则由复旦大学团队基于 Baichuan-13B-Base 构建，DISC-Med-SFT 数据集通过三条管线生成约 47 万条样本，其多轮一致性与行为得分超过 HuatuoGPT、BianQue 与中文 GPT-3.5[35]。
+
+中文路线的评估生态也在同步成熟。Wang 等于 NAACL 2024 主会发表的 \textbf{CMB} 覆盖六大临床工种、中医、药剂、护理等子领域，并按中国医师资格考试结构设计层级化任务[44]；其后的 CMExam 与 MedBench 进一步加入了临床安全维度。CMB 与 MedBench 中包含中医与医保政策等本地化任务，使中文医疗基准与 MultiMedQA、MedHELM 形成了结构性差异。
+
+\subsection{章节小结}
+
+表 \ref{tab:llm-compare} 将上述四条路线的代表性模型并置对比，可以看到同一阶段内的方法学多样性远大于阶段之间的差异。这表明 \textbf{当下医疗 LLM 的能力上限不再由底座大小单独决定，而是由训练目标、对齐数据与推理时计算三个因素共同决定}。
+
+\begin{table}[htbp]
+\centering
+\caption{代表性医疗大语言模型横向对比}
+\label{tab:llm-compare}
+\scriptsize
+\begin{tabularx}{\textwidth}{L{1.7cm} L{0.9cm} L{2cm} L{2.6cm} Y Y L{1.8cm}}
+\toprule
+模型 & 年份 & 主干 & 训练 / 对齐数据 & 关键贡献 & 代表性结果 & 目标场景 \\
+\midrule
+BioGPT[10] & 2022 & GPT-2 Medium 347M & 1,500 万 PubMed 摘要 & 首个生物医学生成式预训练模型 & PubMedQA 78.2\% & 文献问答 \\
+GatorTron[9] & 2022 & Megatron-LM BERT & 820 亿临床笔记词 & 89B 临床域内全参预训练 & NLI 90.20\%，MQA 93.10\% & 临床 NLP \\
+Med-PaLM[8] & 2023 & Flan-PaLM 540B & 指令提示微调（约 65 软提示） & 多维医生评估与 MultiMedQA & MedQA 67.6\%，危害比例 5.9\% 近似医生 5.7\% & USMLE 风格问答 \\
+Med-PaLM 2[13] & 2025 & PaLM 2 & MedQA / MedMCQA / HSQA & 集成精炼与检索链 & MedQA 86.5\%，9 轴中 8 轴胜医生 & 工作流问答 \\
+Med-Gemini[7] & 2024 & Gemini 1.0 Ultra & 多模态混合与自训练 & 不确定性引导搜索与 1M token 上下文 & MedQA 91.1\%，重标后 91.8--92.9\% & 长上下文与工具调用 \\
+AMIE[17] & 2025 & PaLM 2 & 真实对话与自博弈 & In-context 批评与迭代微调 & OSCE 30/32 专家维度优于 GP & 多轮诊断对话 \\
+HuatuoGPT[33] & 2023 & LLaMA-13B（Ziya） & Huatuo-26M + Med-Dialog + ChatGPT 蒸馏 & 混合数据 SFT 与 RLMF & 相对 DoctorGLM 胜率 97\%，相对 ChatGPT 62\% & 中文多轮咨询 \\
+BianQue[34] & 2023 & ChatGLM-6B & BianQueCorpus 243 万 & Chain of Questioning & MedDG PQA 0.81，对比 ChatGPT 0.63 & 主动追问问诊 \\
+PULSE[43] & 2023 & BLOOMZ-7B + 自研 20B & 约 400 万中文医学指令 & 中文医考、中医与指南覆盖 & CMB / MedQA-MCMLE 优于同期开源中文通用 LLM & 中文医考与咨询 \\
+DISC-MedLLM[35] & 2023 & Baichuan-13B & DISC-Med-SFT 47 万 & 三管线数据与偏好对齐 & 多轮一致性优于 HuatuoGPT、BianQue 与中文 GPT-3.5 & 中文医疗对话 \\
+\bottomrule
+\end{tabularx}
+\end{table}
